@@ -22,6 +22,8 @@ urlpatterns = [
     path('viewalldata/studentviewdata', views.studentviewdata, name='studentviewdata'),
     path('viewalldata/studentviewdata/<int:id>', views.updatestudentviewdata, name='updatestudentviewdata'),
     path('viewalldata/studentviewdata/studentdeletedata/<int:id>', views.studentdeletedata, name='studentdeletedata'),
+    path('viewalldata/studentviewdata/search', views.studentviewdata, name='searchstudentviewdata'),
+
 
     path('viewalldata/teacherviewdata', views.teacherviewdata, name='teacherviewdata'),
     path("viewalldata/teacherviewdata/<int:id>", views.updateteacherviewdata, name="updateteacherviewdata"),
@@ -40,6 +42,10 @@ urlpatterns = [
     path('password_change/', views.password_change, name='password_change'),
 
     path("password_reset", views.password_reset_request, name="password_reset"),
+
+    # django rest framework
+    path('snippets/', views.snippet_list),
+    path('snippets/<int:pk>/', views.snippet_detail),
 
 
 ]

@@ -270,7 +270,17 @@ def viewalldata(request):
 
 def studentviewdata(request):
     students = StudentsNew.objects.all()
+    # if request.method == "GET":
+    #     query = request.GET.get("q")
+    #     students = StudentsNew.objects.filter(fullName__icontains=query)
     return render(request, "studentviewdata.html", context={"students":students, })
+
+# def studentssearch(request):
+    # if request.method == "GET":
+    #     query = request.GET.get("q")
+    #     print(query)
+    #     students = StudentsNew.objects.filter(fullName__icontains=query)
+    # return render(request, "searchstudentviewdata.html", context={"students":students, })
 
 def updatestudentviewdata(request, id):
     student = StudentsNew.objects.get(id=id)
@@ -357,3 +367,59 @@ def updategradelevelviewdata(request, id):
 def sectionviewdata(request):
     sections = Section.objects.all()
     return render(request, "sectionviewdata.html", context={"sections":sections, })
+
+
+# django rest framework start
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.parsers import JSONParser
+from .models import StudentsNew
+from .serializers import StudentsSerializer
+
+@csrf_exempt
+def snippet_list(request):
+    """
+    List all code snippets, or create a new snippet.
+    """
+    if request.method == "GET":
+        students = StudentsNew.objects.all()
+        serializer = StudentsSerializer(students, many=True) # many=True allows multiple instances to be passed as parameter
+        return JsonResponse(serializer.data, safe=False)
+    
+    elif request.method == 'POST':
+        data = JSONParser().parse(request)
+        serializer = StudentsSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)
+    
+@csrf_exempt
+def snippet_detail(request, pk):
+    """
+    Retrieve, update or delete a code snippet.
+    """
+    try:
+        student = StudentsNew.objects.get(pk=pk)
+    except StudentsNew.DoesNotExist:
+        return HttpResponse(status=404)
+
+    if request.method == 'GET':
+        serializer = StudentsSerializer(student)
+        return JsonResponse(serializer.data)
+
+    elif request.method == 'PUT':
+        data = JSONParser().parse(request)
+        serializer = StudentsSerializer(student, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
+
+    elif request.method == 'DELETE':
+        student.delete()
+        return HttpResponse(status=204)
+    
+    
+
+
