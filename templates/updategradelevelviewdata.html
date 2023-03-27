@@ -82,19 +82,46 @@
         color: rgb(124, 124, 124);
         font-size: 20px;
     }
+
+    /* button start */
+    .button-5{
+        padding-top: 15px;
+        padding-bottom: 15px;
+        padding-left: 50px;
+        padding-right: 50px;
+        margin: 29px;
+        border-radius: 5px;
+        width: 145px;
+        transition: all 300ms ease;
+        background-color: #f4f4f6;
+        box-shadow: inset 0 0 0 3px #000000;
+        color: #000000;
+    }
+
+    .button-5:active {
+        background-color: hsl(240, 61%, 63%);
+        color: #ffffff;
+    }
+    .button-5:hover {
+        cursor: pointer;
+    }
+
+    /* button end */
 </style>
 
     <body>
         <form action="" method="POST">
             {% csrf_token %}
+            
             {{gradelevels.gradelevel_name}}
             <div class="wrapper">
                 <input type="text" name="gradelevel_name" id="gradelevel_name" placeholder="{{gradelevels.gradelevel_name}}" class="input-field"><br>
-                <input type="email" name="fee" id="fee" placeholder="{{gradelevels.fee}}" class="input-field"><br>
+                <input type="text" name="fee" id="fee" placeholder="{{gradelevels.fee}}" class="input-field"><br>
                 <input type="text" name="subjects" id="subjects" placeholder="{{gradelevels.subjects}}" class="input-field"><br>
                 <input type="submit" value="Update" class="submit-btn">
             </div>
         </form>
-        <a href="gradeleveldeletedata/{{gradevelevels.id}}" onclick="return confirm('Are you sure?');">delete</a>
+        
+        <a href="gradeleveldeletedata/{{gradelevels.id}}" onclick="return confirm('Are you sure?');"><div class="button-5">delete</div></a>
     </body>
 {% endblock %}

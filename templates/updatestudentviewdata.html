@@ -87,6 +87,7 @@
     <body>
         <form action="" method="POST">
             {% csrf_token %}
+            {{students.email}}
             <div class="wrapper">
                 <input type="text" name="fullName" id="fullName" placeholder="{{students.fullName}}" class="input-field"><br>
                 <input type="email" name="email" id="email" placeholder="{{students.email}}" class="input-field"><br>
@@ -94,6 +95,7 @@
                 <input type="submit" value="Update" class="submit-btn">
             </div>
         </form>
+        <a href="{% url 'addstdtosec' %}"> Add Std To Sec</a><br>
         <a href="studentdeletedata/{{students.id}}" onclick="return confirm('Are you sure?');">delete</a>
     </body>
 {% endblock %}

@@ -250,8 +250,8 @@ def addstdtosec(request):
     return render(request, "addstdtosec.html", context={"students":students, "sections":sections, })
 
 def add_teacher_to_grade(request):
-    teachers = TeachersNew.objects.all()
-    gradelevels = GradeLevel.objects.all()
+    teachers = TeachersNew.objects.filter(is_deleted=0)
+    gradelevels = GradeLevel.objects.filter(is_deleted=0)
     if request.method == "POST":
         form = CreateGradeLevelTeacherForm(request.POST)
         print(form)
@@ -269,18 +269,13 @@ def viewalldata(request):
     return render(request, "viewalldata.html", context={"users":users, "teachers": teachers, "students":students, "gradelevels":gradelevels, "sections":sections, })
 
 def studentviewdata(request):
-    students = StudentsNew.objects.all()
-    # if request.method == "GET":
-    #     query = request.GET.get("q")
-    #     students = StudentsNew.objects.filter(fullName__icontains=query)
-    return render(request, "studentviewdata.html", context={"students":students, })
-
-# def studentssearch(request):
-    # if request.method == "GET":
-    #     query = request.GET.get("q")
-    #     print(query)
-    #     students = StudentsNew.objects.filter(fullName__icontains=query)
-    # return render(request, "searchstudentviewdata.html", context={"students":students, })
+    students = StudentsNew.objects.filter(is_deleted=0)
+    if request.method == "GET":
+        query = request.GET.get("q")
+        # print(query)
+        if query is not None:
+            students = students.filter(Q(fullName__icontains=query) | Q(username__icontains=query) | Q(email__icontains=query))
+        return render(request, "studentviewdata.html", context={"students":students, })
 
 def updatestudentviewdata(request, id):
     student = StudentsNew.objects.get(id=id)
@@ -309,8 +304,14 @@ def studentdeletedata(request, id):
     return redirect("/users/viewalldata/studentviewdata")
 
 def teacherviewdata(request):
-    teachers = TeachersNew.objects.all()
-    return render(request, "teacherviewdata.html", context={"teachers": teachers, })
+    teachers = TeachersNew.objects.filter(is_deleted=0)
+    gradelevelteachers = GradeLevelTeacher.objects.filter()
+    if request.method == "GET":
+        query = request.GET.get("q")
+        # print(query)
+        if query is not None:
+            teachers = teachers.filter(Q(fullName__icontains=query) | Q(username__icontains=query) | Q(email__icontains=query) | Q(subject__icontains=query))
+        return render(request, "teacherviewdata.html", context={"teachers":teachers, "gradelevelteachers": gradelevelteachers, })
 
 def updateteacherviewdata(request, id):
     teacher = TeachersNew.objects.get(id=id)
@@ -335,8 +336,13 @@ def updateteacherviewdata(request, id):
 
 
 def gradelevelviewdata(request):
-    gradelevels = GradeLevel.objects.all()
-    return render(request, "gradelevelviewdata.html", context={"gradelevels":gradelevels, })
+    gradelevels = GradeLevel.objects.filter(is_deleted=0)
+    if request.method == "GET":
+        query = request.GET.get("q")
+        # print(query)
+        if query is not None:
+            gradelevels = gradelevels.filter(Q(gradelevel_name__icontains=query) | Q(fee__icontains=query) | Q(subjects__icontains=query))
+        return render(request, "gradelevelviewdata.html", context={"gradelevels":gradelevels, })
 
 def updategradelevelviewdata(request, id):
     gradelevel = GradeLevel.objects.get(id=id)
@@ -364,9 +370,20 @@ def updategradelevelviewdata(request, id):
 
     return render(request, "updategradelevelviewdata.html", context)
 
+def gradeleveldeletedata(request, id):
+    gradelevels = GradeLevel.objects.get(id=id)
+    gradelevels.is_deleted = 1
+    gradelevels.save()
+    return redirect("/users/viewalldata/gradelevelviewdata")
+
 def sectionviewdata(request):
-    sections = Section.objects.all()
-    return render(request, "sectionviewdata.html", context={"sections":sections, })
+    sections = Section.objects.filter(is_deleted=0)
+    if request.method == "GET":
+        query = request.GET.get("q")
+        print(query)
+        if query is not None:
+            sections = sections.filter(Q(sectionname__icontains=query) | Q(gradelevel_id__gradelevel_name__icontains=query))
+        return render(request, "sectionviewdata.html", context={"sections":sections, })
 
 
 # django rest framework start
@@ -374,27 +391,46 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from .models import StudentsNew
-from .serializers import StudentsSerializer
+from .serializers import *
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework import permissions
 
 @csrf_exempt
+@api_view(['GET'])
+@permission_classes((permissions.AllowAny,))
 def snippet_list(request):
     """
     List all code snippets, or create a new snippet.
     """
-    if request.method == "GET":
-        students = StudentsNew.objects.all()
-        serializer = StudentsSerializer(students, many=True) # many=True allows multiple instances to be passed as parameter
-        return JsonResponse(serializer.data, safe=False)
+    students = StudentsNew.objects.all()
+    serializer = StudentsSerializer(students, many=True) # many=True allows multiple instances to be passed as parameter
+    return JsonResponse(serializer.data, safe=False)
     
-    elif request.method == 'POST':
-        data = JSONParser().parse(request)
-        serializer = StudentsSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        return JsonResponse(serializer.errors, status=400)
+    # if request.method == "GET":
+    #     students = CustomUser.objects.all()
+    #     serializer = CustomUserSerializer(students, many=True) # many=True allows multiple instances to be passed as parameter
+    #     print(JsonResponse(serializer.data, safe=False))
+    #     return JsonResponse(serializer.data, safe=False)
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes((permissions.AllowAny,))
+def snippet_post(request):
+    print("post ho yo")
+    data = JSONParser().parse(request)
+    serializer = StudentsSerializer(data=data)
+    print("whaaat")
+    if serializer.is_valid():
+        print("valid")
+        serializer.save()
+        print("saved")
+        return JsonResponse(serializer.data, status=201)
+    return JsonResponse(serializer.errors, status=400)
+
     
 @csrf_exempt
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes((permissions.AllowAny,))
 def snippet_detail(request, pk):
     """
     Retrieve, update or delete a code snippet.
@@ -410,7 +446,7 @@ def snippet_detail(request, pk):
 
     elif request.method == 'PUT':
         data = JSONParser().parse(request)
-        serializer = StudentsSerializer(student, data=data)
+        serializer = StudentsSerializer(student, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(serializer.data)
@@ -419,6 +455,29 @@ def snippet_detail(request, pk):
     elif request.method == 'DELETE':
         student.delete()
         return HttpResponse(status=204)
+    
+
+@csrf_exempt
+@api_view(['GET'])
+@permission_classes((permissions.AllowAny,))
+def section_list(request):
+    """
+    List all code snippets, or create a new snippet.
+    """
+    sections = Section.objects.all()
+    serializer = SectionsSerializer(sections, many=True) # many=True allows multiple instances to be passed as parameter
+    return JsonResponse(serializer.data, safe=False)
+
+@csrf_exempt
+@api_view(['GET'])
+@permission_classes((permissions.AllowAny,))
+def gradelevel_list(request):
+    """
+    List all code snippets, or create a new snippet.
+    """
+    gradelevels = GradeLevel.objects.all()
+    serializer = GradeLevelsSerializer(gradelevels, many=True) # many=True allows multiple instances to be passed as parameter
+    return JsonResponse(serializer.data, safe=False)
     
     
 

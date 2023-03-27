@@ -74,19 +74,37 @@ function addRow() {
 </script>
 
     Teachers:
+    Search:
+    <form action="" method="GET">
+        <input type="text" name="q">
+        <input type="submit" value="search">
+    </form>
     <table>
         <thead>
           <tr>
-            <th>ID</th><th>Username</th><th>Email</th><th>Full Name</th><th>Subject</th><th>EDIT</th>
+            <th>ID</th><th>Username</th><th>Email</th><th>Full Name</th><th>Subject</th><th>Grades</th><th>EDIT</th>
           </tr>
         </thead>
         <tbody>
           <!-- Table rows go here -->
+          
           {% for data in teachers %}
-                  <tr>
-                      <td>{{ data.id }}</td> <td>{{ data.username }}</td> <td>{{ data.email }}</td> <td>{{data.fullName}}</td> <td>{{data.subject}}</td><td><a href="teacherviewdata/{{data.id}}">edit</a></td>
-                  </tr>
-              {% endfor %}
+            {% with id=data.id %}
+                
+              
+              <tr>
+                  <td>{{ data.id }}</td> <td>{{ data.username }}</td> <td>{{ data.email }}</td> <td>{{data.fullName}}</td> <td>{{data.subject}}</td> 
+                  
+                  <td>{% for gradeteacher in gradelevelteachers %}
+                    {% if data.id == gradeteacher.teacher_id.id %}
+                    {{gradeteacher.gradelevel_id.gradelevel_name}}
+                    {% endif %}
+                  {% endfor %}</td> 
+                  
+                  <td><a href="teacherviewdata/{{data.id}}">edit</a></td>
+              </tr>
+            {% endwith %}
+          {% endfor %}
         </tbody>
       </table><br>
 

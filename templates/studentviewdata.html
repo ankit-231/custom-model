@@ -87,12 +87,9 @@ function addRow() {
         <tbody>
           <!-- Table rows go here -->
           {% for data in students %}
-                {% if data.is_deleted == 0 %}
-                    <tr>
-                        <td>{{ data.id }}</td> <td>{{ data.username }}</td> <td>{{ data.email }}</td> <td>{{data.fullName}}</td> <td>{{data.rollno}}</td> <td><a href="studentviewdata/{{data.id}}">edit</a></td>
-                    </tr>
-                {% endif %}
-
+            <tr>
+                <td>{{ data.id }}</td> <td>{{ data.username }}</td> <td>{{ data.email }}</td> <td>{{data.fullName}}</td> <td>{{data.rollno}}</td> <td><a href="studentviewdata/{{data.id}}">edit</a></td>
+            </tr>
             {% endfor %}
         </tbody>
       </table><br>

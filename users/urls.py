@@ -30,6 +30,7 @@ urlpatterns = [
 
     path('viewalldata/gradelevelviewdata', views.gradelevelviewdata, name='gradelevelviewdata'),
     path('viewalldata/gradelevelviewdata/<int:id>', views.updategradelevelviewdata, name='updategradelevelviewdata'),
+    path('viewalldata/gradelevelviewdata/gradeleveldeletedata/<int:id>', views.gradeleveldeletedata, name='gradeleveldeletedata'),
 
 
     path('viewalldata/sectionviewdata', views.sectionviewdata, name='sectionviewdata'),
@@ -44,8 +45,16 @@ urlpatterns = [
     path("password_reset", views.password_reset_request, name="password_reset"),
 
     # django rest framework
-    path('snippets/', views.snippet_list),
-    path('snippets/<int:pk>/', views.snippet_detail),
+    # path('student_get_put/', views.student_get_put),
+    # path('student_post/', views.student_post),
+    path('snippet_list/', views.snippet_list),
+    path('snippet_list/<int:pk>/', views.snippet_detail),
+    path('snippet_post/', views.snippet_post),
+
+    path('section_list/', views.section_list),
+    path('gradelevel_list/', views.gradelevel_list),
+
+    # path('snippets/<int:pk>/', views.snippet_detail),
 
 
 ]
