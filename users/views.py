@@ -69,8 +69,53 @@ def register_page(request):
         form = StudentForm()
         return render(request, "studentform.html", {"form": form})
 
+def register_page_new(request):
+    if request.method == "POST":
+        if request.POST['role'] == "student":
+            print(request.POST)
+            try:
+                user = CustomUser.objects.create_user(username=request.POST['username'], email=request.POST['email'], password=request.POST['password'], role="student")
+                form = StudentForm(request.POST)
+                print(form)
+                # is_valid is a function so is_valid()
+                if form.is_valid():
+                    print("stu form valid")
+                    print(form)
+                    # form.username=request.POST.get('username')
+                    print(form.cleaned_data['email'])
+                    s = form.save()
+                    s.s_u_id = user
+                    s.save()
 
-    
+            except Exception as e:
+                print(e)
+            print("before valid")
+
+        elif request.POST["role"] == "teacher":
+            print(request.POST)
+            try:
+                user = CustomUser.objects.create_user(username=request.POST['username'], email=request.POST['email'], password=request.POST['password'], role="teacher")
+                form = TeacherForm(request.POST)
+                print(form)
+                # is_valid is a function so is_valid()
+                if form.is_valid():
+                    print("stu form valid")
+                    print(form)
+                    # form.username=request.POST.get('username')
+                    print(form.cleaned_data['email'])
+                    t = form.save()
+                    t.t_u_id = user
+                    t.save()
+            except Exception as e:
+                print(e)
+            print("before valid")
+        else:
+            print("error: no role")
+            
+        return render(request, "studentform.html", )
+    else:
+        form = StudentForm()
+        return render(request, "studentform.html", {"form": form})
 
 def login_view(request):
     if request.method == "POST":
@@ -393,11 +438,12 @@ from rest_framework.parsers import JSONParser
 from .models import StudentsNew
 from .serializers import *
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework import permissions
+from rest_framework import permissions, status
+from rest_framework.permissions import IsAuthenticated
 
 @csrf_exempt
 @api_view(['GET'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((IsAuthenticated,))
 def snippet_list(request):
     """
     List all code snippets, or create a new snippet.
@@ -418,20 +464,40 @@ def snippet_list(request):
 def snippet_post(request):
     print("post ho yo")
     data = JSONParser().parse(request)
-    serializer = StudentsSerializer(data=data)
-    print("whaaat")
-    if serializer.is_valid():
-        print("valid")
-        serializer.save()
-        print("saved")
-        return JsonResponse(serializer.data, status=201)
+    if data["role"] == "student":
+        serializer = StudentsSerializerPost(data=data)
+        print("whaaat")
+        if serializer.is_valid():
+            user = CustomUser.objects.create_user(username=data['username'], email=data['email'], password=data['password'], role="student")
+            print("valid")
+            s = serializer.save()
+            s.s_u_id = user
+            s.save()
+            print("saved")
+            return JsonResponse(serializer.data, status=201)
+    elif data["role"] == "teacher":
+        serializer = TeachersSerializerPost(data=data)
+        print("whaaat")
+        if serializer.is_valid():
+            user = CustomUser.objects.create_user(username=data['username'], email=data['email'], password=data['password'], role="teacher")
+            print("valid")
+            t = serializer.save()
+            t.s_u_id = user
+            t.save()
+            print("saved")
+            return JsonResponse(serializer.data, status=201)
+    else:
+        serializer = StudentsSerializerPost()
+        return JsonResponse({"error": "No role given"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    serializer = StudentsSerializerPost()
     return JsonResponse(serializer.errors, status=400)
 
     
 @csrf_exempt
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET'])
 @permission_classes((permissions.AllowAny,))
-def snippet_detail(request, pk):
+def snippet_detail_get(request, pk):
     """
     Retrieve, update or delete a code snippet.
     """
@@ -440,24 +506,45 @@ def snippet_detail(request, pk):
     except StudentsNew.DoesNotExist:
         return HttpResponse(status=404)
 
-    if request.method == 'GET':
-        serializer = StudentsSerializer(student)
-        return JsonResponse(serializer.data)
-
-    elif request.method == 'PUT':
-        data = JSONParser().parse(request)
-        serializer = StudentsSerializer(student, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return JsonResponse(serializer.data)
-        return JsonResponse(serializer.errors, status=400)
-
-    elif request.method == 'DELETE':
-        student.delete()
-        return HttpResponse(status=204)
-    
+    serializer = StudentsSerializer(student)
+    return JsonResponse(serializer.data)
 
 @csrf_exempt
+@api_view(['PUT'])
+@permission_classes((permissions.AllowAny,))
+def snippet_detail_put(request, pk):
+    """
+    Retrieve, update or delete a code snippet.
+    """
+    try:
+        student = StudentsNew.objects.get(pk=pk)
+    except StudentsNew.DoesNotExist:
+        return HttpResponse(status=404)
+
+    data = JSONParser().parse(request)
+    serializer = StudentsSerializer(student, data=data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return JsonResponse(serializer.data)
+    return JsonResponse(serializer.errors, status=400)
+
+    
+@csrf_exempt
+@api_view(['DELETE'])
+@permission_classes((permissions.AllowAny,))
+def snippet_detail_get(request, pk):
+    """
+    Retrieve, update or delete a code snippet.
+    """
+    try:
+        student = StudentsNew.objects.get(pk=pk)
+    except StudentsNew.DoesNotExist:
+        return HttpResponse(status=404)
+
+    student.delete()
+    return HttpResponse(status=204)
+    
+
 @api_view(['GET'])
 @permission_classes((permissions.AllowAny,))
 def section_list(request):
@@ -478,7 +565,71 @@ def gradelevel_list(request):
     gradelevels = GradeLevel.objects.all()
     serializer = GradeLevelsSerializer(gradelevels, many=True) # many=True allows multiple instances to be passed as parameter
     return JsonResponse(serializer.data, safe=False)
+
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from users import serializers
+
+class HelloView(APIView):
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request):
+        content = {'message': 'Hello, GeeksforGeeks'}
+        return Response(content)
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = serializers.CustomTokenObtainPairSerializer
+
+from rest_framework import status
+from rest_framework import generics
+from rest_framework.response import Response
+from django.contrib.auth.models import User
+from .serializers import ChangePasswordSerializer
+from rest_framework.permissions import IsAuthenticated 
+from django.utils.decorators import method_decorator
+
+
+class ChangePasswordView(generics.UpdateAPIView):
+    """
+    An endpoint for changing password.
+    """
+
+    serializer_class = ChangePasswordSerializer
+    model = CustomUser
+    permission_classes = (permissions.AllowAny,)
+
     
+    def get_object(self, queryset=None):
+        obj = CustomUser.objects.get(username="owner")
+        return obj
+    
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # Check old password
+            if not self.object.check_password(serializer.data.get("old_password")):
+                return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
+            self.object.set_password(serializer.data.get("new_password"))
+            print(serializer.data.get("new_password"))
+            self.object.save()
+            response = {
+                'status': 'success',
+                'code': status.HTTP_200_OK,
+                'message': 'Password updated successfully',
+                'data': []
+            }
+
+            return Response(response)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+changepasswordview = csrf_exempt(ChangePasswordView.as_view())
+
     
 
 

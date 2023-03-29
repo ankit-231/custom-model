@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+from datetime import timedelta
 import os
 from pathlib import Path
 
@@ -66,13 +67,28 @@ INSTALLED_APPS = [
 
 ]
 
-
+# rest framework start
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+    ],
+
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+
+    # 'JWT_RESPONSE_PAYLOAD_HANDLER': ['rest_framework_jwt.utils.jwt_response_payload_handler',],
+}
+
+
+# simple_jwt
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1), # time for token expiry
+    # keep your serializer's path
+    # "TOKEN_OBTAIN_SERIALIZER": "users.views.MyTokenObtainPairSerializer",
+
 }
 
 # CRISPY_TEMPLATE_PACK = 'uni_form'

@@ -1,17 +1,20 @@
 from django.urls import path
 from django.contrib.auth.views import PasswordChangeView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
-
+from django.views.decorators.csrf import csrf_exempt
 from . import views
+from .views import ChangePasswordView
+from rest_framework_simplejwt import views as jwt_views
 
 urlpatterns = [
     path('register/', views.register_page, name='register'),
+    path('register_page_new/', views.register_page_new, name='register_page_new'),
     path('login/', views.login_view, name='login_view'),
     path('logout/', views.logout_view, name='logout_view'),
     path('send_mail_view/', views.send_mail_try, name='send_mail_view'),
     path('myprofile/', views.myprofile, name='myprofile'),
 
     path('add_user/', views.add_user, name='add_user'),
-
+ 
 
     path('create_grade_level/', views.create_grade_level, name='create_grade_level'),
     path('create_section/', views.create_section, name='create_section'),
@@ -48,13 +51,19 @@ urlpatterns = [
     # path('student_get_put/', views.student_get_put),
     # path('student_post/', views.student_post),
     path('snippet_list/', views.snippet_list),
-    path('snippet_list/<int:pk>/', views.snippet_detail),
+    path('snippet_list/<int:pk>/', views.snippet_detail_get),
+    
     path('snippet_post/', views.snippet_post),
 
     path('section_list/', views.section_list),
     path('gradelevel_list/', views.gradelevel_list),
 
-    # path('snippets/<int:pk>/', views.snippet_detail),
+    path('api/token/', views.CustomTokenObtainPairView.as_view(), name = 'token_obtain_pair'),
+    path('api/token/refresh/', jwt_views.TokenRefreshView.as_view(), name ='token_refresh'),
+    path('hello/', views.HelloView.as_view(), name ='hello'),
+
+    path('api/change-password/', csrf_exempt(ChangePasswordView.as_view()), name="api_change_password")
+
 
 
 ]
