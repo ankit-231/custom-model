@@ -65,6 +65,9 @@ INSTALLED_APPS = [
     # django rest framework
     'rest_framework',
 
+    # simple jwt
+    'rest_framework_simplejwt.token_blacklist',
+
 ]
 
 # rest framework start

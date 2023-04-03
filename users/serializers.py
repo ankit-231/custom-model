@@ -1,3 +1,4 @@
+from requests import Response
 from rest_framework import serializers
 from .models import *
 
@@ -32,43 +33,34 @@ from .models import *
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['email', 'role'] 
+        fields = ['role'] 
 
-class StudentsSerializer(serializers.ModelSerializer):
-    s_u_id = CustomUserSerializer() #many=False because CustomUser object is not iterable
-    class Meta:
-        model = StudentsNew
-        fields = ['id', 'username', 'email', 'fullName', 's_u_id']
 
-class StudentsSerializerPost(serializers.ModelSerializer):
-    class Meta:
-        model = StudentsNew
-        fields = ['id', 'username', 'email', 'fullName', ]
 
 class TeachersSerializer(serializers.ModelSerializer):
     t_u_id = CustomUserSerializer(many=False, read_only=True) #many=False because CustomUser object is not iterable
     class Meta:
         model = TeachersNew
-        fields = ['id', 'username', 'email', 'fullName', 't_u_id']
+        fields = ['id', 'username', 'email', 'fullName', 'subject', 't_u_id']
 
 class TeachersSerializerPost(serializers.ModelSerializer):
     class Meta:
         model = TeachersNew
         fields = ['id', 'username', 'email', 'fullName', ]
 
-class GradeLevelsSerializer(serializers.ModelSerializer):
 
-    total_students_in_grade = serializers.SerializerMethodField()
-    class Meta:
-        model = GradeLevel
-        fields = ['id', 'gradelevel_name', 'fee', "total_students_in_grade"]
-
-    def get_total_students_in_grade(self, obj):
-        total_students = 0
-        sections = Section.objects.filter(gradelevel_id=obj)
-        for section in sections:
-            total_students += StudentsNew.objects.filter(section=section).count()
-        return total_students
+    
+    # def get_section(self, obj):
+    #     li = []
+    #     try:
+    #         section = Section.objects.filter(gradelevel_id=obj.id)
+    #         for i in section:
+    #             li.append(i)
+    #             return str(li)
+    #     except Exception as e:
+    #         return str(e)
+        
+        
     
     # if we add a new field to the serializer that is not in the model, we need to create it as a field of serializer. for eg: total_students_in_grade = serializers.SerializerMethodField() or hello = serializers.CharField(default="hi")
     # and if the field is total_students_in_grade = serializers.SerializerMethodField(), the convention for creating the function that returns total_students_in_grade is get_total_students_in_grade
@@ -85,6 +77,59 @@ class SectionsSerializer(serializers.ModelSerializer):
     
     def get_total_students_section(self, obj):
         return StudentsNew.objects.filter(section=obj).count()
+
+
+class GradeLevelsSerializer(serializers.ModelSerializer):
+
+    total_students_in_grade = serializers.SerializerMethodField()
+    section = serializers.SerializerMethodField()
+    class Meta:
+        model = GradeLevel
+        fields = ['id', 'gradelevel_name', 'fee', "total_students_in_grade", "section"]
+
+    def get_total_students_in_grade(self, obj):
+        total_students = 0
+        sections = Section.objects.filter(gradelevel_id=obj)
+        for section in sections:
+            total_students += StudentsNew.objects.filter(section=section).count()
+        return total_students
+    
+    def get_section(self, obj):
+        sectionnames = []
+        sections = Section.objects.filter(gradelevel_id = obj.id)
+        for i in sections:
+            sectionnames.append({"sectionname": i.sectionname, "total_students": total_students_section(i)})
+        return sectionnames
+    
+
+def total_students_section(id):
+    return StudentsNew.objects.filter(section=id).count()
+
+class GradeForSecSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GradeLevel
+        fields = ['id', 'gradelevel_name']
+
+class SecForStdSerializer(serializers.ModelSerializer):
+    gradelevel_id = GradeForSecSerializer()
+    class Meta:
+        model = Section
+        fields = ['id', 'sectionname', 'gradelevel_id']
+
+class StudentsSerializer(serializers.ModelSerializer):
+    s_u_id = CustomUserSerializer()
+    section = SecForStdSerializer()
+    class Meta:
+        model = StudentsNew
+        fields = ['id', 'username', 'email', 'fullName', 's_u_id', "section"]
+    
+
+class StudentsSerializerPost(serializers.ModelSerializer):
+    
+    class Meta:
+        model = StudentsNew
+        fields = ['id', 'username', 'email', 'fullName', 'section']
 
 
 # DRF simple_jwt
@@ -134,8 +179,18 @@ class ChangePasswordSerializer(serializers.Serializer):
     """
     Serializer for password change endpoint.
     """
+    username = serializers.CharField(required=True)
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
+
+class AddStdToSecApiSerializer(serializers.Serializer):
+
+
+    """
+    Serializer for AddStdToSecApi.
+    """
+    studentid = serializers.IntegerField(required=True)
+    sectionid = serializers.IntegerField(required=True)
 
     
 

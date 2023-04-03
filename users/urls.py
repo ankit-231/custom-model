@@ -50,10 +50,13 @@ urlpatterns = [
     # django rest framework
     # path('student_get_put/', views.student_get_put),
     # path('student_post/', views.student_post),
-    path('snippet_list/', views.snippet_list),
-    path('snippet_list/<int:pk>/', views.snippet_detail_get),
+    path('student_list/', views.student_list),
+    path('snippet_detail_get_what/<int:pk>/', views.snippet_detail_get_what),
+
+    path('teacher_list/', views.teacher_list),
+
     
-    path('snippet_post/', views.snippet_post),
+    path('studentteacher_post/', views.studentteacher_post),
 
     path('section_list/', views.section_list),
     path('gradelevel_list/', views.gradelevel_list),
@@ -62,7 +65,12 @@ urlpatterns = [
     path('api/token/refresh/', jwt_views.TokenRefreshView.as_view(), name ='token_refresh'),
     path('hello/', views.HelloView.as_view(), name ='hello'),
 
-    path('api/change-password/', csrf_exempt(ChangePasswordView.as_view()), name="api_change_password")
+    path('api/change-password/', csrf_exempt(ChangePasswordView.as_view()), name="api_change_password"),
+
+    path('api/logout', csrf_exempt(views.BlacklistRefreshView.as_view()), name="logout"),
+
+    path('api/addstdtosec', csrf_exempt(views.addstdtosecapi), name="api_addstdtosec"),
+
 
 
 

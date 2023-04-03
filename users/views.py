@@ -118,6 +118,7 @@ def register_page_new(request):
         return render(request, "studentform.html", {"form": form})
 
 def login_view(request):
+    print(request.data)
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -443,8 +444,8 @@ from rest_framework.permissions import IsAuthenticated
 
 @csrf_exempt
 @api_view(['GET'])
-@permission_classes((IsAuthenticated,))
-def snippet_list(request):
+@permission_classes((permissions.AllowAny,))
+def student_list(request):
     """
     List all code snippets, or create a new snippet.
     """
@@ -452,55 +453,61 @@ def snippet_list(request):
     serializer = StudentsSerializer(students, many=True) # many=True allows multiple instances to be passed as parameter
     return JsonResponse(serializer.data, safe=False)
     
-    # if request.method == "GET":
-    #     students = CustomUser.objects.all()
-    #     serializer = CustomUserSerializer(students, many=True) # many=True allows multiple instances to be passed as parameter
-    #     print(JsonResponse(serializer.data, safe=False))
-    #     return JsonResponse(serializer.data, safe=False)
 
+    
 @csrf_exempt
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes((permissions.AllowAny,))
-def snippet_post(request):
-    print("post ho yo")
+def studentteacher_post(request):
     data = JSONParser().parse(request)
-    if data["role"] == "student":
+    if 'role' not in data:
+        return JsonResponse({"error": "No role given"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if data['role'] not in ['student', 'teacher']:
+        return JsonResponse({"error": "invalid role given"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    print(CustomUser.objects.filter(username=data["username"]).exists())
+
+    if CustomUser.objects.filter(username=data["username"]).exists():
+        return Response({"error": "user already exist"}, status=400)
+
+    if data['role'] == 'student':
         serializer = StudentsSerializerPost(data=data)
-        print("whaaat")
         if serializer.is_valid():
             user = CustomUser.objects.create_user(username=data['username'], email=data['email'], password=data['password'], role="student")
-            print("valid")
             s = serializer.save()
             s.s_u_id = user
             s.save()
-            print("saved")
-            return JsonResponse(serializer.data, status=201)
-    elif data["role"] == "teacher":
-        serializer = TeachersSerializerPost(data=data)
-        print("whaaat")
-        if serializer.is_valid():
-            user = CustomUser.objects.create_user(username=data['username'], email=data['email'], password=data['password'], role="teacher")
-            print("valid")
-            t = serializer.save()
-            t.s_u_id = user
-            t.save()
-            print("saved")
-            return JsonResponse(serializer.data, status=201)
-    else:
-        serializer = StudentsSerializerPost()
-        return JsonResponse({"error": "No role given"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=400)
     
-    serializer = StudentsSerializerPost()
-    return JsonResponse(serializer.errors, status=400)
+    else:
+        serializer = TeachersSerializerPost(data=data)
+        if serializer.is_valid():
+            print("whaaat")
+            try:
+                user = CustomUser.objects.create_user(username=data['username'], email=data['email'], password=data['password'], role="teacher")
+                t = serializer.save()
+                t.t_u_id = user
+                t.save()
+                print("saved")
+                return JsonResponse(serializer.data, status=201)
+            except:
+                return Response("username invalid or exists")
+        else:
+            return Response(serializer.errors, status=400)
+
+                
+
+
 
     
 @csrf_exempt
-@api_view(['GET'])
-@permission_classes((permissions.AllowAny,))
-def snippet_detail_get(request, pk):
-    """
-    Retrieve, update or delete a code snippet.
-    """
+@permission_classes((permissions.DjangoModelPermissionsOrAnonReadOnly))
+@api_view(["GET"])
+def snippet_detail_get_what(request, pk):
+    print(pk)
     try:
         student = StudentsNew.objects.get(pk=pk)
     except StudentsNew.DoesNotExist:
@@ -510,7 +517,7 @@ def snippet_detail_get(request, pk):
     return JsonResponse(serializer.data)
 
 @csrf_exempt
-@api_view(['PUT'])
+@api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
 def snippet_detail_put(request, pk):
     """
@@ -522,28 +529,37 @@ def snippet_detail_put(request, pk):
         return HttpResponse(status=404)
 
     data = JSONParser().parse(request)
-    serializer = StudentsSerializer(student, data=data, partial=True)
+    serializer = StudentsSerializerPost(student, data=data, partial=True)
     if serializer.is_valid():
         serializer.save()
         return JsonResponse(serializer.data)
     return JsonResponse(serializer.errors, status=400)
 
     
-@csrf_exempt
-@api_view(['DELETE'])
-@permission_classes((permissions.AllowAny,))
-def snippet_detail_get(request, pk):
-    """
-    Retrieve, update or delete a code snippet.
-    """
-    try:
-        student = StudentsNew.objects.get(pk=pk)
-    except StudentsNew.DoesNotExist:
-        return HttpResponse(status=404)
+# @csrf_exempt
+# @api_view(['DELETE'])
+# @permission_classes((permissions.AllowAny,))
+# def snippet_detail_get_what(request, pk):
+#     """
+#     delete snippet.
+#     """
+#     try:
+#         student = StudentsNew.objects.get(pk=pk)
+#     except StudentsNew.DoesNotExist:
+#         return HttpResponse(status=404)
 
-    student.delete()
-    return HttpResponse(status=204)
-    
+#     student.delete()
+#     return HttpResponse(status=204)
+
+@api_view(['GET'])
+@permission_classes((permissions.AllowAny,))
+def teacher_list(request):
+    """
+    List all code snippets, or create a new snippet.
+    """
+    teachers = TeachersNew.objects.all()
+    serializer = TeachersSerializer(teachers, many=True) # many=True allows multiple instances to be passed as parameter
+    return JsonResponse(serializer.data, safe=False)
 
 @api_view(['GET'])
 @permission_classes((permissions.AllowAny,))
@@ -590,6 +606,9 @@ from django.contrib.auth.models import User
 from .serializers import ChangePasswordSerializer
 from rest_framework.permissions import IsAuthenticated 
 from django.utils.decorators import method_decorator
+from .serializers import CustomTokenObtainPairSerializer
+
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class ChangePasswordView(generics.UpdateAPIView):
@@ -599,15 +618,13 @@ class ChangePasswordView(generics.UpdateAPIView):
 
     serializer_class = ChangePasswordSerializer
     model = CustomUser
-    permission_classes = (permissions.AllowAny,)
-
+    permission_classes = (IsAuthenticated,)
     
-    def get_object(self, queryset=None):
-        obj = CustomUser.objects.get(username="owner")
-        return obj
     
     def update(self, request, *args, **kwargs):
-        self.object = self.get_object()
+
+        obj = CustomUser.objects.get(username=request.data["username"])
+        self.object = obj
         serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
@@ -628,7 +645,49 @@ class ChangePasswordView(generics.UpdateAPIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-changepasswordview = csrf_exempt(ChangePasswordView.as_view())
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+
+# token = RefreshToken(base64_encoded_token_string)
+# token.blacklist()
+
+class BlacklistRefreshView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        print(request.data.get('refresh'))
+        token = RefreshToken(request.data.get('refresh'))
+        token.blacklist()
+        return Response("Success")
+    
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def addstdtosecapi(request):
+    serializer = AddStdToSecApiSerializer(data=request.data)
+    if serializer.is_valid():
+        try:
+            student = StudentsNew.objects.get(id=request.data["studentid"])
+            section = Section.objects.get(id=request.data["sectionid"])
+        except:
+            return Response({"error":"student or section with this id does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+
+        if request.method == "POST":
+            if serializer.is_valid():
+                print(request.data['studentid'])
+                print(student.section)
+                if student.section is None:
+                    student.section = section
+                    student.save()
+                    return Response(f"{student.username} is added to the section {student.section.sectionname}", status=status.HTTP_200_OK)
+                else:
+                    before_section = student.section.sectionname
+                    student.section = section
+                    student.save()
+                    return Response(f"{student.username}'s section is updated from {before_section} to {student.section.sectionname}", status=status.HTTP_200_OK)
+
+    return Response(serializer.errors)
+
 
     
 
