@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import CustomUserCreationForm, CustomUserChangeForm
-from .models import CustomUser, StudentsNew, TeachersNew
+from .models import CustomUser, StudentsNew, TeachersNew, Subjects
 
 class CustomUserAdmin(UserAdmin):
     add_form = CustomUserCreationForm
@@ -35,7 +35,8 @@ class CustomUserAdmin(UserAdmin):
 admin.site.register(CustomUser, CustomUserAdmin)
 
 # you cannot register it together
-
 admin.site.register(StudentsNew)
 
 admin.site.register(TeachersNew)
+
+admin.site.register(Subjects)

@@ -38,8 +38,6 @@ urlpatterns = [
 
     path('viewalldata/sectionviewdata', views.sectionviewdata, name='sectionviewdata'),
 
-    path('add_teacher_to_grade', views.add_teacher_to_grade, name='add_teacher_to_grade'),
-
 
     path('home/', views.home, name='home'),
 
@@ -51,12 +49,33 @@ urlpatterns = [
     # path('student_get_put/', views.student_get_put),
     # path('student_post/', views.student_post),
     path('student_list/', views.student_list),
-    path('snippet_detail_get_what/<int:pk>/', views.snippet_detail_get_what),
-
+    path('student_detail_get/<int:pk>/', views.student_detail_get),
+    path('teacher_detail_get/<int:pk>/', views.teacher_detail_get),
     path('teacher_list/', views.teacher_list),
+
+    path('teacherandsubject/', views.teacherandsubject),
+    path('sectionandsubject/', views.sectionandsubject),
 
     
     path('studentteacher_post/', views.studentteacher_post),
+
+    path('student_delete/<int:pk>/', views.student_delete),
+    path('section_delete/<int:pk>/', views.section_delete),
+    path('teacher_delete/<int:pk>/', views.teacher_delete),
+    path('gradelevel_delete/<int:pk>/', views.gradelevel_delete),
+    
+    path('gradelevel_update/<int:pk>/', views.gradelevel_update),
+    path('section_update/<int:pk>/', views.section_update),
+    path('teacher_update/<int:pk>/', views.teacher_update),
+    path('student_update/<int:pk>/', views.student_update),
+
+
+    path('test_api', views.test_api),
+
+
+    
+    path('section_post/', views.section_post),
+    path('gradelevel_post/', views.gradelevel_post),
 
     path('section_list/', views.section_list),
     path('gradelevel_list/', views.gradelevel_list),

@@ -118,7 +118,6 @@ def register_page_new(request):
         return render(request, "studentform.html", {"form": form})
 
 def login_view(request):
-    print(request.data)
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -275,17 +274,17 @@ def create_section(request):
                 form.save()
                 print("section saved")
                 return HttpResponse("section saved")
-        return render(request, "section.html", {'form': form, 'gradelevels': GradeLevel.objects.all()})
+        return render(request, "section.html", {'form': form, 'gradelevels': GradeLevel.objects.filter(is_deleted=0)})
     else:
         form = CreateSectionForm()
-        return render(request, "section.html", {'form': form, 'gradelevels': GradeLevel.objects.all()})
+        return render(request, "section.html", {'form': form, 'gradelevels': GradeLevel.objects.filter(is_deleted=0)})
 
 
 
 
 def addstdtosec(request):
-    students = StudentsNew.objects.all()
-    sections = Section.objects.all()
+    students = StudentsNew.objects.filter(is_deleted=0)
+    sections = Section.objects.filter(is_deleted=0)
     if request.method == "POST":
         print("lol")
         print(request.POST)
@@ -295,23 +294,13 @@ def addstdtosec(request):
         st.save()
     return render(request, "addstdtosec.html", context={"students":students, "sections":sections, })
 
-def add_teacher_to_grade(request):
-    teachers = TeachersNew.objects.filter(is_deleted=0)
-    gradelevels = GradeLevel.objects.filter(is_deleted=0)
-    if request.method == "POST":
-        form = CreateGradeLevelTeacherForm(request.POST)
-        print(form)
-        if form.is_valid():
-            print("valid")
-            form.save()
-    return render(request, "add_teacher_to_grade.html", context={"teachers": teachers, "gradelevels": gradelevels})
 
 def viewalldata(request):
     users = CustomUser.objects.values('id', 'username', 'email', 'role')
-    teachers = TeachersNew.objects.all()
-    students = StudentsNew.objects.all()
-    gradelevels = GradeLevel.objects.all()
-    sections = Section.objects.all()
+    teachers = TeachersNew.objects.filter(is_deleted=0)
+    students = StudentsNew.objects.filter(is_deleted=0)
+    gradelevels = GradeLevel.objects.filter(is_deleted=0)
+    sections = Section.objects.filter(is_deleted=0)
     return render(request, "viewalldata.html", context={"users":users, "teachers": teachers, "students":students, "gradelevels":gradelevels, "sections":sections, })
 
 def studentviewdata(request):
@@ -351,13 +340,12 @@ def studentdeletedata(request, id):
 
 def teacherviewdata(request):
     teachers = TeachersNew.objects.filter(is_deleted=0)
-    gradelevelteachers = GradeLevelTeacher.objects.filter()
     if request.method == "GET":
         query = request.GET.get("q")
         # print(query)
         if query is not None:
             teachers = teachers.filter(Q(fullName__icontains=query) | Q(username__icontains=query) | Q(email__icontains=query) | Q(subject__icontains=query))
-        return render(request, "teacherviewdata.html", context={"teachers":teachers, "gradelevelteachers": gradelevelteachers, })
+        return render(request, "teacherviewdata.html", context={"teachers":teachers, })
 
 def updateteacherviewdata(request, id):
     teacher = TeachersNew.objects.get(id=id)
@@ -366,7 +354,7 @@ def updateteacherviewdata(request, id):
     if request.method == "POST":
         fullName = request.POST["fullName"]
         email = request.POST["email"]
-        subject = request.POST["subject"]
+        subject = request.POST["subjects"]
         print(teacher.fullName)
         print(request.POST["fullName"])
         if not fullName == "":
@@ -374,7 +362,7 @@ def updateteacherviewdata(request, id):
         if not email == "":
             teacher.email = request.POST["email"]
         if not subject == "":
-            teacher.subject = request.POST["subject"]
+            teacher.subject = request.POST["subjects"]
         print(teacher.fullName)
         teacher.save()
 
@@ -444,12 +432,15 @@ from rest_framework.permissions import IsAuthenticated
 
 @csrf_exempt
 @api_view(['GET'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((IsAuthenticated,))
 def student_list(request):
     """
     List all code snippets, or create a new snippet.
     """
-    students = StudentsNew.objects.all()
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
+    students = StudentsNew.objects.filter(is_deleted=0)
     serializer = StudentsSerializer(students, many=True) # many=True allows multiple instances to be passed as parameter
     return JsonResponse(serializer.data, safe=False)
     
@@ -457,9 +448,14 @@ def student_list(request):
     
 @csrf_exempt
 @api_view(["POST"])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((IsAuthenticated,))
 def studentteacher_post(request):
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+
     data = JSONParser().parse(request)
+
     if 'role' not in data:
         return JsonResponse({"error": "No role given"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -498,31 +494,96 @@ def studentteacher_post(request):
         else:
             return Response(serializer.errors, status=400)
 
-                
+@csrf_exempt
+@api_view(["POST"])
+@permission_classes((IsAuthenticated,))
+def section_post(request):
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
+    data = JSONParser().parse(request)
+
+    sectionf = Section.objects.filter(Q(sectionname=data["section_name"]) & Q(is_deleted=0))
+    if sectionf:
+        return Response({"error": "section with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = SectionsSerializerPost(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=400)
+
+@csrf_exempt
+@api_view(["POST"])
+@permission_classes((IsAuthenticated,))
+def gradelevel_post(request):
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
+    data = JSONParser().parse(request)
+
+    gradelevelf = GradeLevel.objects.filter(Q(gradelevel_name=data["gradelevel_name"]) & Q(is_deleted=0))
+    if gradelevelf:
+        return Response({"error": "gradelevel with this name already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        
+    serializer = GradeLevelSerializerPost(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=400)
+
+    
 
 
 
     
 @csrf_exempt
-@permission_classes((permissions.DjangoModelPermissionsOrAnonReadOnly))
+@permission_classes((permissions.AllowAny))
 @api_view(["GET"])
-def snippet_detail_get_what(request, pk):
+def student_detail_get(request, pk):
     print(pk)
     try:
         student = StudentsNew.objects.get(pk=pk)
     except StudentsNew.DoesNotExist:
         return HttpResponse(status=404)
+    
+    print(request.user, student.s_u_id)
+    if request.user.role == "admin" or request.user == student.s_u_id:
+        serializer = StudentsSerializer(student)
+        return JsonResponse(serializer.data)
+    else:
+        return JsonResponse({"error": "you are neither admin nor the user whose info you're trying to access"})
 
-    serializer = StudentsSerializer(student)
-    return JsonResponse(serializer.data)
+@permission_classes((IsAuthenticated,))
+@api_view(["GET"])
+def teacher_detail_get(request, pk):
+
+    try:
+        teacher = TeachersNew.objects.get(pk=pk)
+    except TeachersNew.DoesNotExist:
+        return HttpResponse(status=404)
+    print(request.user)
+    if request.user.role == "admin" or request.user == teacher.t_u_id:
+        serializer = TeachersSerializer(teacher)
+        return JsonResponse(serializer.data)
+    else:
+        return JsonResponse({"error": "you are neither admin nor the user whose info you're trying to access"})
 
 @csrf_exempt
 @api_view(['POST'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((IsAuthenticated,))
 def snippet_detail_put(request, pk):
     """
     Retrieve, update or delete a code snippet.
     """
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
     try:
         student = StudentsNew.objects.get(pk=pk)
     except StudentsNew.DoesNotExist:
@@ -536,53 +597,319 @@ def snippet_detail_put(request, pk):
     return JsonResponse(serializer.errors, status=400)
 
     
-# @csrf_exempt
-# @api_view(['DELETE'])
-# @permission_classes((permissions.AllowAny,))
-# def snippet_detail_get_what(request, pk):
-#     """
-#     delete snippet.
-#     """
-#     try:
-#         student = StudentsNew.objects.get(pk=pk)
-#     except StudentsNew.DoesNotExist:
-#         return HttpResponse(status=404)
+@csrf_exempt
+@api_view(['DELETE'])
+@permission_classes((IsAuthenticated,))
+def student_delete(request, pk):
+    """
+    delete student.
+    """
 
-#     student.delete()
-#     return HttpResponse(status=204)
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
+
+    try:
+        student = StudentsNew.objects.get(pk=pk)
+        
+    except StudentsNew.DoesNotExist:
+        return Response(data={"error": "this student does not exist"}, status=404)
+
+    if student.is_deleted == 0:
+        student.is_deleted = 1
+        student.save()
+        return Response({"success": f"student {student.username} is deleted"}, status=200)
+    else:
+        return Response({"error": f"student {student.username} was already deleted"}, status=status.HTTP_400_BAD_REQUEST)
+
+@csrf_exempt
+@api_view(['DELETE'])
+@permission_classes((IsAuthenticated,))
+def teacher_delete(request, pk):
+    """
+    delete teacher.
+    """
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
+
+    try:
+        teacher = TeachersNew.objects.get(pk=pk)
+        
+    except TeachersNew.DoesNotExist:
+        return Response(data={"error": "this teacher does not exist"}, status=404)
+
+    if teacher.is_deleted == 0:
+        teacher.is_deleted = 1
+        teacher.save()
+        return Response({"success": f"teacher {teacher.username} is deleted"}, status=200)
+    else:
+        return Response({"error": f"teacher {teacher.username} was already deleted"}, status=status.HTTP_400_BAD_REQUEST)
+    
+@csrf_exempt
+@api_view(['DELETE'])
+@permission_classes((IsAuthenticated,))
+def gradelevel_delete(request, pk):
+    """
+    delete gradelevel.
+    """
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
+
+    try:
+        gradelevel = GradeLevel.objects.get(pk=pk)
+        
+    except GradeLevel.DoesNotExist:
+        return Response(data={"error": "this gradelevel does not exist"}, status=404)
+
+    if gradelevel.is_deleted == 0:
+        gradelevel.is_deleted = 1
+        gradelevel.save()
+        return Response({"success": f"gradelevel {gradelevel.gradelevel_name} is deleted"}, status=200)
+    else:
+        return Response({"error": f"gradelevel {gradelevel.gradelevel_name} was already deleted"}, status=status.HTTP_400_BAD_REQUEST)
+
+@csrf_exempt
+@api_view(['DELETE'])
+@permission_classes((IsAuthenticated,))
+def section_delete(request, pk):
+    """
+    delete section.
+    """
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
+
+    try:
+        section = Section.objects.get(pk=pk)
+        
+    except Section.DoesNotExist:
+        return Response(data={"error": "this section does not exist"}, status=404)
+
+    if section.is_deleted == 0:
+        section.is_deleted = 1
+        section.save()
+        return Response({"success": f"section {section.sectionname} is deleted"}, status=200)
+    else:
+        return Response({"error": f"section {section.sectionname} was already deleted"}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((IsAuthenticated,))
 def teacher_list(request):
     """
-    List all code snippets, or create a new snippet.
+    List all teacher.
     """
-    teachers = TeachersNew.objects.all()
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
+    teachers = TeachersNew.objects.filter(is_deleted=0)
     serializer = TeachersSerializer(teachers, many=True) # many=True allows multiple instances to be passed as parameter
     return JsonResponse(serializer.data, safe=False)
 
 @api_view(['GET'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((IsAuthenticated,))
 def section_list(request):
     """
-    List all code snippets, or create a new snippet.
+    List all section.
     """
-    sections = Section.objects.all()
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
+
+    sections = Section.objects.filter(is_deleted=0)
     serializer = SectionsSerializer(sections, many=True) # many=True allows multiple instances to be passed as parameter
     return JsonResponse(serializer.data, safe=False)
 
 @csrf_exempt
 @api_view(['GET'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((IsAuthenticated,))
 def gradelevel_list(request):
     """
-    List all code snippets, or create a new snippet.
+    List all gradelevel.
     """
-    gradelevels = GradeLevel.objects.all()
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
+    gradelevels = GradeLevel.objects.filter(is_deleted=0)
     serializer = GradeLevelsSerializer(gradelevels, many=True) # many=True allows multiple instances to be passed as parameter
     return JsonResponse(serializer.data, safe=False)
 
+# @csrf_exempt
+# @api_view(['PUT'])
+# @permission_classes((IsAuthenticated,))
+# def gradelevel_update(request, pk):
+#     """
+#     update gradelevel.
+#     """
+#     data = JSONParser().parse(request)
 
+#     try:
+#         gradelevel = GradeLevel.objects.get(pk=pk)
+#     except:
+#         return Response({"error": "gradelevel doesnot exist"})
+#     serializer = GradeLevelSerializerPost(gradelevel, data=data)
+#     if serializer.is_valid():
+#         print(serializer.data)
+#         return JsonResponse(serializer.data)
+#     else:
+#         return JsonResponse(serializer.errors)
+
+@csrf_exempt
+@api_view(['PUT'])
+@permission_classes((IsAuthenticated,))
+def gradelevel_update(request, pk):
+    """
+    update gradelevel.
+    """
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
+
+    data = JSONParser().parse(request)
+
+    try:
+        gradelevel = GradeLevel.objects.get(pk=pk)
+    except:
+        return Response({"error": "gradelevel doesnot exist"})
+    serializer = GradeLevelSerializerPost(gradelevel, data=data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        print(serializer.data)
+        return JsonResponse(serializer.data)
+    else:
+        return JsonResponse(serializer.errors)
+
+@csrf_exempt
+@api_view(['PUT'])
+@permission_classes((IsAuthenticated,))
+def section_update(request, pk):
+    """
+    update section.
+    """
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+    
+
+    data = JSONParser().parse(request)
+
+    try:
+        section = Section.objects.get(pk=pk)
+    except:
+        return Response({"error": "section doesnot exist"})
+    serializer = SectionsSerializerPost(section, data=data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        print(serializer.data)
+        return JsonResponse(serializer.data)
+    else:
+        return JsonResponse(serializer.errors)
+
+@csrf_exempt
+@api_view(['PUT'])
+@permission_classes((IsAuthenticated,))
+def teacher_update(request, pk):
+    """
+    update teacher.
+    """
+
+
+    data = JSONParser().parse(request)
+
+    try:
+        teacher = TeachersNew.objects.get(pk=pk)
+    
+    except:
+        return Response({"error": "teacher doesnot exist"})
+    
+    if request.user.role != "admin" and request.user != teacher.t_u_id:
+        return JsonResponse({"error": "you are neither admin nor the user whose info you're trying to access"})
+
+    serializer = TeachersSerializerPost(teacher, data=data, partial=True)
+    if serializer.is_valid():
+        try:
+            cust_teach = CustomUser.objects.get(username=teacher.username)
+            cust_teach.username = data["username"]
+            cust_teach.save()
+            print(cust_teach)
+            serializer.save()
+        except:
+            return Response({"error": f"user with this username already exists"})
+        
+        print(serializer.data)
+        return JsonResponse(serializer.data)
+    else:
+        return JsonResponse(serializer.errors)
+
+@csrf_exempt
+@api_view(['PUT'])
+@permission_classes((IsAuthenticated,))
+def student_update(request, pk):
+    """
+    update student.
+    """
+    data = JSONParser().parse(request)
+
+    try:
+        student = StudentsNew.objects.get(pk=pk)
+    except:
+        return Response({"error": "student doesnot exist"})
+    
+    if request.user.role != "admin" and request.user != student.s_u_id:
+        return JsonResponse({"error": "you are neither admin nor the user whose info you're trying to access"})
+
+    serializer = StudentsSerializerPost(student, data=data, partial=True)
+    if serializer.is_valid():
+        try:
+            cust_stud = CustomUser.objects.get(username=student.username)
+            cust_stud.username = data["username"]
+            cust_stud.save()
+            print(cust_stud)
+            serializer.save()
+        except Exception as e:
+            return Response({"error": f"user with this username already exists: {e}"})
+        
+        print(serializer.data)
+        return JsonResponse(serializer.data)
+    else:
+        return JsonResponse(serializer.errors)
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes((IsAuthenticated,))
+def test_api(request):
+    """
+    just for testing.
+    """
+    data = JSONParser().parse(request)
+    try:
+        print(data["username"])
+    except Exception as e:
+        print(e)
+
+    try:
+        student = StudentsNew.objects.get(username=data["username"])
+    except:
+        return Response({"error": "student doesnot exist"})
+    try:
+        user = CustomUser.objects.create_user(username=student.username, email=student.email, password="12345678", role="student")
+        student.s_u_id = user
+        student.save()
+        return Response({"success": "uuu"})
+        
+    except Exception as e:
+        user = CustomUser.objects.get(username=data["username"])
+        student.s_u_id = user
+        student.save()
+        return Response({"error": f"purano but done"})
+    
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -596,6 +923,7 @@ class HelloView(APIView):
         return Response(content)
 
 
+# gives custom token to user
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = serializers.CustomTokenObtainPairSerializer
 
@@ -618,7 +946,7 @@ class ChangePasswordView(generics.UpdateAPIView):
 
     serializer_class = ChangePasswordSerializer
     model = CustomUser
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
     
     
     def update(self, request, *args, **kwargs):
@@ -688,6 +1016,77 @@ def addstdtosecapi(request):
 
     return Response(serializer.errors)
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def teacherandsubject(request):
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+
+    data = JSONParser().parse(request)
+    note = {"error": "provide tid and sid", "note": "tid = teacher's id, subid = subject's id"}
+
+    if 'tid' not in data or 'subid' not in data:
+        return Response(note, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        print("here")
+        t = TeachersNew.objects.get(pk=data["tid"])
+        user = t.t_u_id
+        print(user, user.username)
+    except TeachersNew.DoesNotExist as e:
+        return Response({"error": str(e)})
+    
+    try:
+        sub = Subjects.objects.get(pk=data["subid"])
+    except Subjects.DoesNotExist as e:
+        return Response({"error": str(e)})
+    
+    teachsub = t.subjects.filter(id=sub.id)
+    
+    if teachsub.exists():
+        note = f"{user.username} and {sub.name} were already linked together"
+        return Response({"note": note}, status=status.HTTP_200_OK)
+
+    t.subjects.add(sub)
+    t.save()
+
+    return Response({"success": f"{user.username} and {sub.name} are successfully linked together"}, status=status.HTTP_201_CREATED)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def sectionandsubject(request):
+
+    if request.user.role != "admin":
+        return JsonResponse({"error": "you are not an admin"})
+
+    data = JSONParser().parse(request)
+    print("haha")
+    
+    if 'secid' not in data or 'subid' not in data :
+        note = {"error": "provide secid and subid", "note": "secid = section's id, subid = subject's id"}
+        return Response(note, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        sec = Section.objects.get(pk=data["secid"])
+    except:
+        return Response({"error": str(Section.DoesNotExist)})
+    
+    try:
+        sub = Subjects.objects.get(pk=data["subid"])
+    except:
+        return Response({"error": str(Subjects.DoesNotExist)})
+    
+    secsub = sec.subjects.filter(id=sub.id)
+    if secsub.exists():
+        note = f"{sec.sectionname} and {sub.name} were already linked together"
+        return Response({"note": note}, status=status.HTTP_200_OK)
+
+
+    sec.subjects.add(sub)
+    sec.save()
+
+    return Response({"success": f"{sec.sectionname} and {sub.name} are successfully linked together"}, status=status.HTTP_201_CREATED)
 
     
 

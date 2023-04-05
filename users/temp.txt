@@ -26,3 +26,14 @@ def addstdtosecapi(request):
                     return Response(f"{student.username}'s section is updated from {before_section} to {student.section.sectionname}", status=status.HTTP_200_OK)
 
     return Response(serializer.errors)
+
+
+{
+    id: 1,
+    student: [
+        {"name": "ankit", "rollno": "17"},
+        {"name": "saurav", "rollno": "18"}
+
+    ]
+
+}

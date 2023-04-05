@@ -22,14 +22,7 @@ class CustomUser(AbstractUser):
 
 
 
-class TeachersNew(models.Model):
-    username = models.CharField(max_length=250, unique=True)
-    email = models.EmailField(("email address"))
-    fullName = models.CharField(max_length=250)
-    subject = models.CharField(max_length=250)
-    password = models.CharField(max_length=100)
-    t_u_id = models.ForeignKey(CustomUser(), on_delete=models.SET_NULL, null=True, blank=True)
-    is_deleted = models.IntegerField(default=0)
+
 
 
 
@@ -38,18 +31,27 @@ class GradeLevel(models.Model):
     fee = models.CharField(max_length=250)
     subjects = models.CharField(max_length=250)
     is_deleted = models.IntegerField(default=0)
+    
 
+class Subjects(models.Model):
+    name = models.CharField(max_length=250)
+    is_deleted = models.BooleanField(default=False)
+
+class TeachersNew(models.Model):
+    username = models.CharField(max_length=250, unique=True)
+    email = models.EmailField(("email address"))
+    fullName = models.CharField(max_length=250)
+    subjects = models.ManyToManyField(Subjects(), blank=True,)
+    password = models.CharField(max_length=100)
+    t_u_id = models.ForeignKey(CustomUser(), on_delete=models.SET_NULL, null=True, blank=True)
+    is_deleted = models.IntegerField(default=0)
 
 class Section(models.Model):
     sectionname = models.CharField(max_length=250)
     total_students_section = models.IntegerField()
     gradelevel_id = models.ForeignKey(GradeLevel(),  on_delete=models.SET_NULL, null=True, blank=True, )
     is_deleted = models.IntegerField(default=0)
-
-class GradeLevelTeacher(models.Model):
-    gradelevel_id = models.ForeignKey( GradeLevel(),  on_delete=models.SET_NULL, null=True, blank=True, )
-    teacher_id = models.ForeignKey(TeachersNew(),  on_delete=models.SET_NULL, null=True, blank=True, )
-    is_deleted = models.IntegerField(default=0)
+    subjects = models.ManyToManyField(Subjects(), blank=True,)
 
 class StudentsNew(models.Model):
     username = models.CharField(max_length=250, unique=True)
@@ -60,3 +62,4 @@ class StudentsNew(models.Model):
     is_deleted = models.IntegerField(default=0)
     s_u_id = models.ForeignKey(CustomUser(), on_delete=models.SET_NULL, null=True, blank=True)
     section = models.ForeignKey(Section(), on_delete=models.SET_NULL, null=True, blank=True, )
+

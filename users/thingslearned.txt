@@ -1,0 +1,28 @@
+serializer:
+.save() nagarey samma, serializer pani update hudaina
+partial=True garyo bhane jun jun data aako cha tyo tyo matra huncha
+
+
+for authentication purpose, to allow access to only authenticated user:
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated', ) # this line
+
+}
+
+ani permission_classes maa IsAuthenticated
+for anyone to access permissions.AllowAny
+
+to check who is logged in, print request.user
+
+teacher ra subject ko link cha ki naai:
+teacher = TeachersNew.objects.get(pk=pk)
+teacher.subjects.filter(id=subid).exists()

@@ -28,7 +28,7 @@ class TeacherForm(ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
     class Meta:
         model = TeachersNew
-        fields = ['username', 'fullName', 'email', 'subject', ]
+        fields = ['username', 'fullName', 'email', 'subjects', ]
 
 class CreateGradeLevelForm(ModelForm):
     class Meta:
@@ -39,10 +39,6 @@ class CreateSectionForm(ModelForm):
     class Meta:
         model = Section
         fields = ["sectionname", "total_students_section", "gradelevel_id", ]
-class CreateGradeLevelTeacherForm(ModelForm):
-    class Meta:
-        model = GradeLevelTeacher
-        fields = ["gradelevel_id", "teacher_id", ]
 
 
 # class ChangePasswordOwn(ModelForm):
