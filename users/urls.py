@@ -53,7 +53,8 @@ urlpatterns = [
     path('teacher_detail_get/<int:pk>/', views.teacher_detail_get),
     path('teacher_list/', views.teacher_list),
 
-    path('teacherandsubject/', views.teacherandsubject),
+    path('teachersectionsubject/', views.teachersectionsubject),
+    path('getteachersectionsubject/', views.getteachersectionsubject),
     path('sectionandsubject/', views.sectionandsubject),
 
     

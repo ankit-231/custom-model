@@ -30,7 +30,11 @@ from .models import *
 
 # using ModelSerializer
 
-
+def get_unique_from_list(li: list):
+    '''get unique elements from a list.
+    list is converted to set, then list again
+    '''
+    return list(set(li))
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -44,12 +48,8 @@ class SubjectSerializer(serializers.ModelSerializer):
         fields = ["name"]
 
 
-class TeachersSerializer(serializers.ModelSerializer):
-    t_u_id = CustomUserSerializer(many=False, read_only=True) #many=False because CustomUser object is not iterable
-    subjects = SubjectSerializer(many=True)
-    class Meta:
-        model = TeachersNew
-        fields = ['id', 'username', 'email', 'fullName', 'subjects', 't_u_id']
+
+    
 
 
 class TeachersSerializerPost(serializers.ModelSerializer):
@@ -63,11 +63,13 @@ class SectionsSerializer(serializers.ModelSerializer):
     
     total_students_section = serializers.SerializerMethodField()
     student = serializers.SerializerMethodField()
-    subjects = SubjectSerializer(many=True)
+    # subjects = SubjectSerializer(many=True)
+    subjects = serializers.SerializerMethodField()
 
     class Meta:
         model = Section
         fields = ['id', 'sectionname', 'total_students_section', "subjects", "student"]
+        
     
     def get_total_students_section(self, obj):
         return StudentsNew.objects.filter(section=obj).count()
@@ -82,12 +84,78 @@ class SectionsSerializer(serializers.ModelSerializer):
             internal_dict = {}
             internal_dict["name"] = s.username
             internal_dict["rollno"] = s.rollno
-
-            print(internal_dict)
             external_li.append(internal_dict)
-            print(external_li)
-
         return external_li
+    
+    def get_subjects(self, obj):
+        teachsecsub = TeacherSectionGradeSubject.objects.filter(section=obj)
+        subject = []
+        for tss in teachsecsub:
+            subject.append(tss.subject.name)
+        return get_unique_from_list(subject)
+
+
+
+from django.db.models.query_utils import Q
+
+class TeachersSerializer(serializers.ModelSerializer):
+    t_u_id = CustomUserSerializer(many=False, read_only=True) #many=False because CustomUser object is not iterable
+    sections = serializers.SerializerMethodField()
+    subjects = serializers.SerializerMethodField()
+    grade = serializers.SerializerMethodField() 
+    class Meta:
+        model = TeachersNew
+        fields = ['grade', 'id', 'username', 'email', 'fullName', 'sections', 'subjects', 't_u_id']
+    
+    def get_sections(self, obj):
+        teachsecsub = TeacherSectionGradeSubject.objects.filter(teacher=obj)
+        section = []
+        for tss in teachsecsub:
+            section.append(tss.section.sectionname)
+        return section
+    
+    def get_subjects(self, obj):
+        teachsecsub = TeacherSectionGradeSubject.objects.filter(teacher=obj)
+        subject = []
+        for tss in teachsecsub:
+            subject.append(tss.subject.name)
+        return subject
+    
+    def get_grade(self, obj):
+        external = []
+        ourteacher = obj
+        grades = TeacherSectionGradeSubject.objects.filter(teacher=ourteacher)
+        grade = []
+        for k in grades:
+            grade.append(k.grade)
+        grade = get_unique_from_list(grade)
+        for i in grade:
+            ext_dic = {}
+            ext_dic["gradelevel"] = i.gradelevel_name
+            section = TeacherSectionGradeSubject.objects.filter(grade=i, teacher=ourteacher)
+            sections = []
+            for l in section:
+                sections.append(l.section)
+            sections = get_unique_from_list(sections)
+            internal = []
+            for j in sections:
+                int_dic = {}
+                int_dic["sectionname"] = j.sectionname
+                subject = []
+                subjects = TeacherSectionGradeSubject.objects.filter(grade=i, section=j, teacher=ourteacher)
+                for m in subjects:
+                    subject.append(m.subject.name)
+                sections = get_unique_from_list(subjects)
+                
+                int_dic["subjects"] = subject
+                internal.append(int_dic)
+
+            ext_dic["section"] = internal
+            external.append(ext_dic)
+        print(external)
+        return external
+        
+
     
 class SectionsSerializerPost(serializers.ModelSerializer):
     
@@ -153,6 +221,33 @@ class StudentsSerializerPost(serializers.ModelSerializer):
         model = StudentsNew
         fields = ['id', 'username', 'email', 'fullName', 'section']
 
+class TeacherSectionSubjectSerializer(serializers.ModelSerializer):
+    teacher = serializers.SerializerMethodField()
+    subject = serializers.SerializerMethodField()
+    section = serializers.SerializerMethodField()
+    grade = serializers.SerializerMethodField()
+    class Meta:
+        model = TeacherSectionGradeSubject
+        fields = ['teacher', 'subject', 'section', 'grade', ]
+    
+    def get_teacher(self, obj):
+        return obj.teacher.t_u_id.username
+    
+    def get_subject(self, obj):
+        return obj.subject.name
+    
+    def get_section(self, obj):
+        return obj.section.sectionname
+    
+    def get_grade(self, obj):
+        return obj.grade.gradelevel_name
+
+class TeacherSectionSubjectSerializerPost(serializers.ModelSerializer):
+
+    class Meta:
+        model = TeacherSectionGradeSubject
+        fields = ['teacher', 'subject', 'section', 'grade', ]
+        extra_kwargs = {'teacher': {'required': True,}, 'subject': {'required': True,}, 'section': {'required': True,}, 'grade': {'required': True,} }
 
 # DRF simple_jwt
 

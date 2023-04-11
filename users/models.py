@@ -41,7 +41,6 @@ class TeachersNew(models.Model):
     username = models.CharField(max_length=250, unique=True)
     email = models.EmailField(("email address"))
     fullName = models.CharField(max_length=250)
-    subjects = models.ManyToManyField(Subjects(), blank=True,)
     password = models.CharField(max_length=100)
     t_u_id = models.ForeignKey(CustomUser(), on_delete=models.SET_NULL, null=True, blank=True)
     is_deleted = models.IntegerField(default=0)
@@ -62,4 +61,10 @@ class StudentsNew(models.Model):
     is_deleted = models.IntegerField(default=0)
     s_u_id = models.ForeignKey(CustomUser(), on_delete=models.SET_NULL, null=True, blank=True)
     section = models.ForeignKey(Section(), on_delete=models.SET_NULL, null=True, blank=True, )
+
+class TeacherSectionGradeSubject(models.Model):
+    teacher = models.ForeignKey(TeachersNew(), on_delete=models.SET_NULL, null=True, blank=True)
+    section = models.ForeignKey(Section(), on_delete=models.SET_NULL, null=True, blank=True)
+    subject = models.ForeignKey(Subjects(), on_delete=models.SET_NULL, null=True, blank=True)
+    grade = models.ForeignKey(GradeLevel(), on_delete=models.SET_NULL, null=True, blank=True)
 

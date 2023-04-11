@@ -37,3 +37,345 @@ def addstdtosecapi(request):
     ]
 
 }
+
+
+{
+    "grade": {
+        "one a": ["sci", "math"] -> only of our teacher
+        "one b": ["sci", "math"] -> only of our teacher
+    }
+}
+
+
+
+
+
+
+extract ourteacher
+extract sections taught by teacher as unique(teachersections)
+
+grade= []
+for grades in teachersections:
+    grade.append(grades.gradelevel_id)
+
+grade = unique(teachersections)
+
+external_di = {}
+for tsec in teachersections:
+    internal_di_li = []
+    for teachsec in teachersections:
+        internal_di = {}
+        subteachinsecs = []
+        
+        subteachinsecqsets = filter(teacher=ourteacher, section=teachsec)
+        for subteachinsecqset in subteachinsecqsets:
+            subteachinsecs.append(subteachinsecqset.name)
+
+        internal_di[teachsec] = subteachinsecs
+
+        internal_di_li.append(internal_di)
+
+
+    external_di[tsec.gradelevel_id.gradelevel_name] = internal_di_li
+
+
+
+
+
+extract subjects taught by teacher as teachersubjects
+
+extract subjects taught by teacher in one a: filter(teacher=1, section=1) as subteachinsec
+"section=1": [subteachinsec]
+
+extract subjects taught in each section by teacher:
+
+ram:
+[one a, one b]
+[sci, maths, nep]
+
+one a: all subjects [sci, maths, nep, comp, eng]
+
+
+one a: sci, maths
+one b: nep, maths
+
+one a: 
+
+
+
+extract ourgrades from unique(teachersections.gradelevel_id.gradelevel_name)
+for ourgrade in ourgrades:
+    external_di[ourgrade] = 
+in grades extract gradesection from sections taught by teacher
+
+
+grades taught by teacher
+sections taught by teacher
+teachsecsubjects taught by teacher
+
+
+
+for grade in grades:
+    section = sections.filter(gradelevel_id = grade)
+    for sectio in section:
+        teasesubject = teachsecsubjects.filter(section = sectio)
+        for subje in teasesubject:
+            subj.append(subje.subject.name)
+        {sectio: subj}
+        secti.append({sectio: subj})
+    {grade: secti}
+    grad.append({grade: secti})
+
+grade: {section}
+
+for grade in grades:
+    
+
+
+section: {subjects}
+
+
+[
+    "grade": {
+        "one a": ["sci", "math"] -> only of our teacher
+        "one b": ["sci", "math"] -> only of our teacher
+    }
+]
+
+"grade": 
+
+[
+    {
+        "gradename": "one",
+        "section": {"sectionname": ["one a", "one b"], "subjects": ["sci", "maths"]}
+    }
+]
+
+new_data = []
+for i in teachsecsubjects:
+    f_di = {}
+    section = i.section
+    f_di["gradename"] = section.gradelevel_id.gradelevel_name
+
+
+all grades = gradelevels
+all sections = sections
+specific section ko subjects = subject
+
+[   {
+        "gradename": ___,
+        "sections": [{ "sectionname": one a, "subjects": [maths, nep]}, {"sectionname": one b, "subjects": [nep, sci]}]
+
+    },
+    {
+        "gradename": ___,
+        "sections": [{ "sectionname": one a, "subjects": [maths, nep]}, {"sectionname": one b, "subjects": [nep, sci]}]
+
+    }
+]
+
+
+
+external = []
+for i in teachsecsubjects:
+    ext_dic = {}
+    
+    ext_dic["gradelevel"] = i.grade.gradelevel_name
+    sections = TeachSecSub.obj.filter(grade=i.grade, teach=i.teach)
+    for j in sections:
+
+    int_dic = {}
+    int_dic["sectionname"] = i.section.sectionname
+    int_dic["subjects"] = TeachSecSub.obj.filter(grade=i.grade, sec=i.sec, teach=i.teach)
+
+
+external = []
+grades = []
+ourteacher = ...
+
+ourteacher = obj
+for i in grades:
+    ext_dic = {}
+    ext_dic["gradelevel"] = i.gradelevel_name
+    sections = TeachSecSub.obj.filter(grade=i, teach=ourteacher)
+    internal = []
+    for j in sections:
+        int_dic = {}
+        int_dic["sectionname"] = j.sectionname
+        int_dic["subjects"] = TeachSecSub.obj.filter(grade=i, sec=j, teach=ourteacher)
+        internal.append(int_dic)
+    ext_dic["section"] = internal
+    external.append(ext_dic)
+
+return external
+
+
+
+
+
+ourteacher = obj
+        
+        teachsecsub = TeacherSectionGradeSubject.objects.filter(teacher=ourteacher)
+        new_data = []
+        section_data = []
+        grade_data = []
+        subject_data = []
+        # print(teachsecsub)
+        for i in teachsecsub:
+            section_data.append(i.section.sectionname)
+            grade_data.append(i.section.gradelevel_id.gradelevel_name)
+            subject_data.append(i.subject.name)
+            # print(i)
+            # print(grade_data)
+            # print(subject_data)
+        
+        grade_list = []
+        
+        for index, item in enumerate(grade_data, start=0):
+            # print(item)
+            data = dict()
+            sections = []
+            section =dict()
+
+            if len(new_data)>0:
+
+                for ind , d in enumerate(new_data, start=0):
+                    
+                    # print(d["grade"])
+                    if d["grade"] == item:
+                        for sec_ind, sec in enumerate(d["sections"], start=0):
+                            
+                            if sec["section"] == section_data[index]:
+                                print(sec["subject"])
+                                sub_data = sec["subject"]
+                                
+                                sub_data.append(subject_data[index])
+                                print(sub_data)
+                            
+                            else:
+                                data1 = []
+                                print(sec)
+                                print(index)
+                                print(sec["section"])
+                                data1.append({"section":section_data[index], "subject":[subject_data[index]]})
+                                d["sections"].append(data1)
+                                print(d["sections"])
+                                
+
+                                
+                    else:
+                        data["grade"]= item
+                        # print(index)
+                        # print(section_data[index])
+                        # print({"section": section_data[index], "subject":subject_data[index]})
+                        sections.append({"section": section_data[index], "subject":[subject_data[index]]})
+                        data["sections"] = sections
+                        grade_list.append(item)
+                        new_data.append(data)
+                        # print(new_data)
+            else:
+
+                data["grade"]= item
+                # print(index)
+                # print(section_data[index])
+                # print({"section": section_data[index], "subject":subject_data[index]})
+                sections.append({"section": section_data[index], "subject":[subject_data[index]]})
+                data["sections"] = sections
+                grade_list.append(item)
+                new_data.append(data)
+                # print(new_data)
+                
+
+        print(new_data)
+        return new_data
+
+
+            # if data["grade"] not in grade_list:
+            #     data["grade"]= item
+            #     data["sections"] = sections.apppend({"section": section[index], "subject":subjects[index]})
+            #     grade_list.append(item)
+            #     new_data.append(data)
+            # else:
+            #     pass
+
+
+
+                
+
+            
+
+
+        # new_data = []
+        # grade_data = dict()
+        # grades_list = []
+        # section_data = dict()
+        # subjects = []
+        # for i in teachsecsub:
+           
+        #     section = i.section
+        #     grade = section.gradelevel_id
+        #     grade_name = grade.gradelevel_name
+        #     for j in new_data:
+                
+        #         if grade_name in j["grade"]:
+        #             if section
+
+                    
+                
+        #         else:
+        #             grade_data["grade"] = section.gradelevel_id.gradelevel_name
+        #             section_data["sectionname"] = section.sectionname
+        #             section_data["subject"] = [i.subject.name]
+        #             grade_data["section"] = [section_data]
+        #             new_data.append(grade_data)
+        #             grades_list.append(grade_name)
+
+
+
+        #     if grade.gradelevel_name not in grade_data['grade']
+        #     grade_data["grade"] = grade
+            # if new_data grade_data["grade"] == section.gradelevel_id.gradelevel_name:
+            #     new_data[]
+
+            # print(not new_data)
+            # if new_data:
+            #     for j in new_data:
+            #         print(section.gradelevel_id.gradelevel_name)
+            #         print(j["grade"])
+            #         if section.gradelevel_id.gradelevel_name == j["grade"]:
+            #             # print("-"*30)
+            #             # print(j["section"])
+            #             # print(type(j["section"]))
+            #             j["section"].append({"sectionname": section.sectionname, "subject": [i.subject.name]})
+            #         else:
+            #             # print("here")
+            #             grade_data["grade"] = section.gradelevel_id.gradelevel_name
+            #             section_data["sectionname"] = section.sectionname
+            #             section_data["subject"] = [i.subject.name]
+            #             grade_data["section"] = [section_data]
+            #             new_data.append(grade_data)
+            
+            # grade_data["grade"] = section.gradelevel_id.gradelevel_name
+            # section_data["sectionname"] = section.sectionname
+            # section_data["subject"] = [i.subject.name]
+            # grade_data["section"] = [section_data]
+            # new_data.append(grade_data)
+
+
+            
+
+        # print(new_data)
+
+        # news_data = []
+
+        # for j in new_data:
+        #     ho_ho = {}
+        #     ho_ho["gradename"] = j["grade"]
+        #     ho_ho["section"] = {"sectionname": [], "subject": []}
+        #     if j["section"] not in ho_ho["section"]["sectionname"]:
+        #         ho_ho["section"]["sectionname"].append(j["section"])
+            
+        #     if j["subject"] not in ho_ho["subject"]["sectionname"]:
+        #         ho_ho["subject"]["sectionname"].append(j["subject"])
+
+        #     news_data.append(ho_ho)
