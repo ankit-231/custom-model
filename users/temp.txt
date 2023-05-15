@@ -194,18 +194,19 @@ grades = []
 ourteacher = ...
 
 ourteacher = obj
-for i in grades:
-    ext_dic = {}
-    ext_dic["gradelevel"] = i.gradelevel_name
-    sections = TeachSecSub.obj.filter(grade=i, teach=ourteacher)
-    internal = []
-    for j in sections:
-        int_dic = {}
-        int_dic["sectionname"] = j.sectionname
-        int_dic["subjects"] = TeachSecSub.obj.filter(grade=i, sec=j, teach=ourteacher)
-        internal.append(int_dic)
-    ext_dic["section"] = internal
-    external.append(ext_dic)
+
+
+ext_dic = {}
+ext_dic["gradelevel"] = i.gradelevel_name
+sections = TeachSecSub.obj.filter(grade=i, teach=ourteacher)
+internal = []
+for j in sections:
+    int_dic = {}
+    int_dic["sectionname"] = j.sectionname
+    int_dic["subjects"] = TeachSecSub.obj.filter(grade=i, sec=j, teach=ourteacher)
+    internal.append(int_dic)
+ext_dic["section"] = internal
+external.append(ext_dic)
 
 return external
 
@@ -379,3 +380,5 @@ ourteacher = obj
         #         ho_ho["subject"]["sectionname"].append(j["subject"])
 
         #     news_data.append(ho_ho)
+
+
