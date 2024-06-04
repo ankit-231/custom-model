@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 import os
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,9 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-jc=b2lxdmkf*7oy@9_2f@mh6tvx(i8z@@a%z=dijif#22_l3t&"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # my own CustomUser model
 AUTH_USER_MODEL = 'users.CustomUser'
@@ -69,10 +70,10 @@ INSTALLED_APPS = [
 
 # for sending emails
 
-EMAIL_HOST = 'smptp.gmail.com'
-EMAIL_HOST_USER = 'testing231things@gmail.com'
-EMAIL_HOST_PASSWORD = 'qljxdoiikixhprfr'
-EMAIL_PORT = 2525
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = config('EMAIL_PORT')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
@@ -115,13 +116,28 @@ WSGI_APPLICATION = "mycustomuser.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
+
 DATABASES = {
-    "default": {
+    'default': {
+        'ENGINE': config('DB_ENGINE'),
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
+    },
+    "sqlite": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
