@@ -8,6 +8,7 @@ mediafiles/
 media/
 **/log/
 **/venv/
+**/.venv/
 *.ini
 # .env
 .env.prod
