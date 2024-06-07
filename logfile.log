@@ -1,0 +1,113 @@
+*** Starting uWSGI 2.0.25.1 (64bit) on [Fri Jun  7 10:42:44 2024] ***
+compiled with version: 11.4.0 on 04 June 2024 05:05:58
+os: Linux-6.5.0-35-generic #35~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue May  7 09:00:52 UTC 2
+nodename: ankit-ubuntu
+machine: x86_64
+clock source: unix
+detected number of CPU cores: 8
+current working directory: /home/ankit/MyFiles/custom-model
+detected binary path: /home/ankit/MyFiles/custom-model/.venv/bin/uwsgi
+!!! no internal routing support, rebuild with pcre support !!!
+chdir() to /home/ankit/MyFiles/custom-model
+*** WARNING: you are running uWSGI without its master process manager ***
+your processes number limit is 62771
+your memory page size is 4096 bytes
+detected max file descriptor number: 8192
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uWSGI http bound on :8010 fd 3
+spawned uWSGI http 1 (pid: 19552)
+uwsgi socket 0 bound to TCP address 127.0.0.1:8011 fd 6
+Python version: 3.10.12 (main, Nov 20 2023, 15:14:05) [GCC 11.4.0]
+PEP 405 virtualenv detected: /home/ankit/MyFiles/custom-model/.venv
+Set PythonHome to /home/ankit/MyFiles/custom-model/.venv
+Python main interpreter initialized at 0x596ae705dec0
+python threads support enabled
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 825016 bytes (805 KB) for 8 cores
+*** Operational MODE: preforking+threaded ***
+WSGI app 0 (mountpoint='') ready in 0 seconds on interpreter 0x596ae705dec0 pid: 19550 (default app)
+*** uWSGI is running in multiple interpreter mode ***
+spawned uWSGI worker 1 (pid: 19550, cores: 2)
+spawned uWSGI worker 2 (pid: 19553, cores: 2)
+spawned uWSGI worker 3 (pid: 19555, cores: 2)
+spawned uWSGI worker 4 (pid: 19557, cores: 2)
+[pid: 19550|app: 0|req: 1/1] 127.0.0.1 () {52 vars in 1493 bytes} [Fri Jun  7 05:02:18 2024] GET / => generated 13520 bytes in 38 msecs (HTTP/1.1 200) 7 headers in 223 bytes (1 switches on core 0)
+[pid: 19553|app: 0|req: 1/2] 127.0.0.1 () {50 vars in 1425 bytes} [Fri Jun  7 05:02:19 2024] GET /favicon.ico => generated 179 bytes in 32 msecs (HTTP/1.1 404) 6 headers in 214 bytes (1 switches on core 0)
+*** Starting uWSGI 2.0.25.1 (64bit) on [Fri Jun  7 10:47:24 2024] ***
+compiled with version: 11.4.0 on 04 June 2024 05:05:58
+os: Linux-6.5.0-35-generic #35~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue May  7 09:00:52 UTC 2
+nodename: ankit-ubuntu
+machine: x86_64
+clock source: unix
+detected number of CPU cores: 8
+current working directory: /home/ankit/MyFiles/custom-model
+detected binary path: /home/ankit/MyFiles/custom-model/.venv/bin/uwsgi
+!!! no internal routing support, rebuild with pcre support !!!
+chdir() to /home/ankit/MyFiles/custom-model
+*** WARNING: you are running uWSGI without its master process manager ***
+your processes number limit is 62771
+your memory page size is 4096 bytes
+detected max file descriptor number: 8192
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uWSGI http bound on :8010 fd 3
+spawned uWSGI http 1 (pid: 19829)
+uwsgi socket 0 bound to TCP address 127.0.0.1:8011 fd 6
+Python version: 3.10.12 (main, Nov 20 2023, 15:14:05) [GCC 11.4.0]
+PEP 405 virtualenv detected: /home/ankit/MyFiles/custom-model/.venv
+Set PythonHome to /home/ankit/MyFiles/custom-model/.venv
+Python main interpreter initialized at 0x6026224f6ec0
+python threads support enabled
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 825016 bytes (805 KB) for 8 cores
+*** Operational MODE: preforking+threaded ***
+WSGI app 0 (mountpoint='') ready in 1 seconds on interpreter 0x6026224f6ec0 pid: 19827 (default app)
+*** uWSGI is running in multiple interpreter mode ***
+spawned uWSGI worker 1 (pid: 19827, cores: 2)
+spawned uWSGI worker 2 (pid: 19830, cores: 2)
+spawned uWSGI worker 3 (pid: 19832, cores: 2)
+spawned uWSGI worker 4 (pid: 19833, cores: 2)
+*** Starting uWSGI 2.0.25.1 (64bit) on [Fri Jun  7 10:47:36 2024] ***
+compiled with version: 11.4.0 on 04 June 2024 05:05:58
+os: Linux-6.5.0-35-generic #35~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue May  7 09:00:52 UTC 2
+nodename: ankit-ubuntu
+machine: x86_64
+clock source: unix
+detected number of CPU cores: 8
+current working directory: /home/ankit/MyFiles/custom-model
+detected binary path: /home/ankit/MyFiles/custom-model/.venv/bin/uwsgi
+!!! no internal routing support, rebuild with pcre support !!!
+chdir() to /home/ankit/MyFiles/custom-model
+*** WARNING: you are running uWSGI without its master process manager ***
+your processes number limit is 62771
+your memory page size is 4096 bytes
+detected max file descriptor number: 8192
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uWSGI http bound on :8010 fd 3
+spawned uWSGI http 1 (pid: 19951)
+uwsgi socket 0 bound to TCP address 127.0.0.1:8011 fd 6
+Python version: 3.10.12 (main, Nov 20 2023, 15:14:05) [GCC 11.4.0]
+PEP 405 virtualenv detected: /home/ankit/MyFiles/custom-model/.venv
+Set PythonHome to /home/ankit/MyFiles/custom-model/.venv
+Python main interpreter initialized at 0x5e24f7e7cec0
+python threads support enabled
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 825016 bytes (805 KB) for 8 cores
+*** Operational MODE: preforking+threaded ***
+WSGI app 0 (mountpoint='') ready in 1 seconds on interpreter 0x5e24f7e7cec0 pid: 19949 (default app)
+*** uWSGI is running in multiple interpreter mode ***
+spawned uWSGI worker 1 (pid: 19949, cores: 2)
+spawned uWSGI worker 2 (pid: 19952, cores: 2)
+spawned uWSGI worker 3 (pid: 19953, cores: 2)
+spawned uWSGI worker 4 (pid: 19955, cores: 2)
+[pid: 19955|app: 0|req: 1/1] 127.0.0.1 () {54 vars in 1564 bytes} [Fri Jun  7 05:02:43 2024] GET /users/logout/ => generated 0 bytes in 51 msecs (HTTP/1.1 302) 9 headers in 346 bytes (1 switches on core 0)
+[pid: 19955|app: 0|req: 2/2] 127.0.0.1 () {54 vars in 1518 bytes} [Fri Jun  7 05:02:43 2024] GET /users/login/ => generated 15040 bytes in 6 msecs (HTTP/1.1 200) 8 headers in 359 bytes (1 switches on core 1)
+owner
+loggedin
+[pid: 19949|app: 0|req: 1/3] 127.0.0.1 () {62 vars in 1667 bytes} [Fri Jun  7 05:02:59 2024] POST /users/login/ => generated 0 bytes in 333 msecs (HTTP/1.1 302) 10 headers in 527 bytes (1 switches on core 0)
+[pid: 19953|app: 0|req: 1/4] 127.0.0.1 () {56 vars in 1602 bytes} [Fri Jun  7 05:02:59 2024] GET /users/home/ => generated 13520 bytes in 34 msecs (HTTP/1.1 200) 7 headers in 223 bytes (1 switches on core 0)
